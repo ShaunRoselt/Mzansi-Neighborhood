@@ -9,11 +9,13 @@
   <body>
     <div class="game-shell">
       <header class="title-strip">
-        <div>
+        <div class="title-copy">
           <p class="eyebrow">Mzansi Neighborhood</p>
-          <h1>Classic Isometric Household Sim</h1>
+          <h1>Dlamini Starter Home</h1>
+          <p class="subtitle">Original retro household simulation with a stronger classic isometric presentation.</p>
         </div>
         <div class="save-card" aria-live="polite">
+          <span class="save-label">Live Mode</span>
           <span id="dayLabel">Monday</span>
           <strong id="timeLabel">07:00</strong>
           <span class="funds">§<span id="fundsValue">1200</span></span>
@@ -23,33 +25,56 @@
       <main class="game-layout">
         <section class="world-panel" aria-label="Isometric household view">
           <div class="lot-toolbar">
-            <button id="wallsButton" type="button">Walls: Cutaway</button>
-            <button id="autonomyButton" type="button">Autonomy: On</button>
+            <span class="lot-chip">Neighborhood Lot</span>
+            <span class="lot-chip accent">Household View</span>
           </div>
           <div class="viewport">
+            <div class="backdrop-skyline" aria-hidden="true"></div>
+            <div class="lot-shadow" aria-hidden="true"></div>
             <div id="isoStage" class="iso-stage" aria-live="polite"></div>
           </div>
         </section>
 
         <aside class="right-console" aria-label="Household information">
-          <section>
-            <h2>Household</h2>
+          <section class="portrait-section">
+            <div class="portrait-card">
+              <div class="portrait-figure" aria-hidden="true">
+                <div class="portrait-plumbob"></div>
+                <div class="portrait-avatar"></div>
+              </div>
+              <div class="portrait-copy">
+                <h2 id="selectedSimName">Nomsa Dlamini</h2>
+                <p id="selectedSimMood" class="mood-line">Settling in</p>
+                <div class="portrait-tags">
+                  <span>Home Lot</span>
+                  <span>Starter Family</span>
+                </div>
+              </div>
+            </div>
             <div id="householdList" class="household-list"></div>
           </section>
 
-          <section>
-            <h2 id="selectedSimName">Nomsa Dlamini</h2>
-            <p id="selectedSimMood" class="mood-line">Settling in</p>
+          <section class="panel-section">
+            <div class="panel-heading">
+              <h2>Needs</h2>
+              <span>Motives</span>
+            </div>
             <div id="needsPanel" class="needs-panel"></div>
           </section>
 
-          <section>
-            <h2>Action Queue</h2>
+          <section class="panel-section">
+            <div class="panel-heading">
+              <h2>Action Queue</h2>
+              <span>Commands</span>
+            </div>
             <ol id="queueList" class="queue-list"></ol>
           </section>
 
-          <section>
-            <h2>Buy Catalog</h2>
+          <section class="panel-section">
+            <div class="panel-heading">
+              <h2>Buy Catalog</h2>
+              <span>Room Items</span>
+            </div>
             <div id="catalogList" class="catalog-list"></div>
           </section>
         </aside>
@@ -61,12 +86,19 @@
           <button type="button" disabled>Build</button>
           <button type="button" disabled>Buy</button>
         </div>
+
         <div class="speed-controls">
           <button id="pauseButton" type="button" aria-label="Pause simulation">||</button>
           <button class="speed-button active" type="button" data-speed="1">1</button>
           <button class="speed-button" type="button" data-speed="2">2</button>
           <button class="speed-button" type="button" data-speed="3">3</button>
         </div>
+
+        <div class="misc-controls">
+          <button id="wallsButton" type="button">Walls: Cutaway</button>
+          <button id="autonomyButton" type="button">Autonomy: On</button>
+        </div>
+
         <div class="message-feed" aria-label="Household event log">
           <ol id="eventLog"></ol>
         </div>
