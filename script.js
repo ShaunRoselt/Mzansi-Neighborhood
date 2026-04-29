@@ -186,7 +186,7 @@ function renderNeeds() {
 }
 
 
-function canAffordAction(object) {
+function canPerformAction(object) {
   return object.fundsDelta >= 0 || state.funds >= Math.abs(object.fundsDelta);
 }
 
@@ -198,7 +198,7 @@ function renderActions() {
     button.type = "button";
     button.textContent = object.action;
     button.dataset.objectId = object.id;
-    button.disabled = !canAffordAction(object);
+    button.disabled = !canPerformAction(object);
     actionButtons.append(button);
   });
 }
@@ -237,7 +237,7 @@ function decayNeeds() {
 
 function performAction(objectId) {
   const object = objects.find((item) => item.id === objectId);
-  if (!object || !canAffordAction(object)) return;
+  if (!object || !canPerformAction(object)) return;
 
   state.activeObjectId = object.id;
   state.simPosition = { x: object.x, y: object.y };
@@ -263,6 +263,7 @@ houseGrid.addEventListener("click", (event) => {
 
 houseGrid.addEventListener("keydown", (event) => {
   if (event.key !== "Enter" && event.key !== " ") return;
+  event.preventDefault();
   const tile = event.target.closest("[data-object-id]");
   if (tile) performAction(tile.dataset.objectId);
 });
