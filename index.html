@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mzansi Neighborhood</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="game-shell">
+      <header class="top-bar">
+        <div>
+          <p class="eyebrow">Mzansi Neighborhood</p>
+          <h1>Classic Life Simulation Prototype</h1>
+        </div>
+        <div class="clock-panel" aria-live="polite">
+          <span id="dayLabel">Monday</span>
+          <strong id="timeLabel">07:00</strong>
+          <button id="pauseButton" type="button">Pause</button>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="neighborhood-card" aria-label="House and household simulation">
+          <div id="houseGrid" class="house-grid"></div>
+        </section>
+
+        <aside class="side-panel" aria-label="Sim controls and status">
+          <section class="portrait-card">
+            <div class="plumbob" aria-hidden="true"></div>
+            <div>
+              <h2 id="simName">Nomsa Dlamini</h2>
+              <p id="simMood">Feeling focused</p>
+            </div>
+          </section>
+
+          <section>
+            <h3>Needs</h3>
+            <div id="needsList" class="needs-list"></div>
+          </section>
+
+          <section>
+            <h3>Actions</h3>
+            <div id="actionButtons" class="action-buttons"></div>
+          </section>
+
+          <section>
+            <h3>Household Funds</h3>
+            <p class="funds"><span aria-hidden="true">§</span><span id="fundsValue">850</span></p>
+          </section>
+
+          <section>
+            <h3>Event Log</h3>
+            <ol id="eventLog" class="event-log" aria-live="polite"></ol>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <template id="needTemplate">
+      <article class="need-row">
+        <div class="need-copy">
+          <strong></strong>
+          <span></span>
+        </div>
+        <div class="meter" aria-hidden="true"><i></i></div>
+      </article>
+    </template>
+
+    <script src="script.js"></script>
+  </body>
+</html>
