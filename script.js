@@ -5,9 +5,14 @@ const ORIGIN_X = 500;
 const ORIGIN_Y = 52;
 const DAILY_STIPEND = 110;
 const MAX_LOG_ENTRIES = 7;
+const DESPERATE_THRESHOLD = 18;
+const WORRIED_THRESHOLD = 35;
+const AUTONOMY_THRESHOLD = 34;
+const MINUTES_PER_TICK = 5;
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const NEED_ORDER = ["hunger", "comfort", "hygiene", "bladder", "energy", "fun", "social", "room"];
 
+// Single-letter room codes keep the lot map readable in a plain text grid.
 const rooms = {
   K: { name: "Kitchen", color: "#d6a85d" },
   B: { name: "Bathroom", color: "#8fc5d4" },
@@ -107,7 +112,7 @@ function createSim(id, name, x, y, color) {
   };
 }
 
-function clamp(value) {
+function clampToPercent(value) {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
@@ -156,8 +161,8 @@ function lowestNeed(sim) {
 
 function moodFor(sim) {
   const [need, value] = lowestNeed(sim);
-  if (value < 18) return `Desperate for ${need}`;
-  if (value < 35) return `Worried about ${need}`;
+  if (value < DESPERATE_THRESHOLD) return `Desperate for ${need}`;
+  if (value < WORRIED_THRESHOLD) return `Worried about ${need}`;
   const average = Object.values(sim.needs).reduce((sum, value) => sum + value, 0) / NEED_ORDER.length;
   if (average > 78) return "Living their best day";
   if (average > 58) return "Comfortably settled";
@@ -238,7 +243,7 @@ function finishAction(sim, interaction) {
   if (interaction.income) state.funds += interaction.income;
 
   Object.entries(interaction.effects || {}).forEach(([need, amount]) => {
-    sim.needs[need] = clamp(sim.needs[need] + amount);
+    sim.needs[need] = clampToPercent(sim.needs[need] + amount);
   });
 
   addLog(`${sim.name} ${interaction.log}${formatMoneyNote(interaction)}`);
@@ -258,14 +263,14 @@ function decayNeeds(sim, amount) {
   };
 
   Object.entries(decay).forEach(([need, rate]) => {
-    sim.needs[need] = clamp(sim.needs[need] - rate * amount);
+    sim.needs[need] = clampToPercent(sim.needs[need] - rate * amount);
   });
 }
 
 function chooseAutonomy(sim) {
   if (!state.autonomy || sim.active || sim.queue.length > 0) return;
   const [need, value] = lowestNeed(sim);
-  if (value > 34) return;
+  if (value > AUTONOMY_THRESHOLD) return;
 
   const best = objects
     .flatMap((object) => object.interactions.map((interaction) => ({ object, interaction, gain: interaction.effects?.[need] || 0 })))
@@ -523,6 +528,6 @@ render();
 
 setInterval(() => {
   if (state.paused) return;
-  advanceSimulation(5 * state.speed);
+  advanceSimulation(MINUTES_PER_TICK * state.speed);
   render();
 }, TICK_MS);
