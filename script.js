@@ -185,6 +185,11 @@ function renderNeeds() {
   });
 }
 
+
+function canAffordAction(object) {
+  return object.fundsDelta >= 0 || state.funds >= Math.abs(object.fundsDelta);
+}
+
 function renderActions() {
   actionButtons.innerHTML = "";
 
@@ -193,7 +198,7 @@ function renderActions() {
     button.type = "button";
     button.textContent = object.action;
     button.dataset.objectId = object.id;
-    button.disabled = object.fundsDelta < 0 && state.funds < Math.abs(object.fundsDelta);
+    button.disabled = !canAffordAction(object);
     actionButtons.append(button);
   });
 }
@@ -232,7 +237,7 @@ function decayNeeds() {
 
 function performAction(objectId) {
   const object = objects.find((item) => item.id === objectId);
-  if (!object || (object.fundsDelta < 0 && state.funds < Math.abs(object.fundsDelta))) return;
+  if (!object || !canAffordAction(object)) return;
 
   state.activeObjectId = object.id;
   state.simPosition = { x: object.x, y: object.y };
