@@ -34,6 +34,9 @@ const lot = [
   "YDDDLLLYYYYY"
 ];
 
+const LOT_HEIGHT = lot.length;
+const LOT_WIDTH = lot[0].length;
+
 const catalog = [
   { id: "lamp", label: "Standing Lamp", cost: 85, x: 8, y: 8, room: "L", icon: "lamp", interactions: [{ label: "Admire lamp", duration: 20, effects: { room: 10, fun: 3 }, log: "enjoys the warm lamplight." }] },
   { id: "bookcase", label: "Bookcase", cost: 210, x: 7, y: 3, room: "L", icon: "books", interactions: [{ label: "Read", duration: 45, effects: { fun: 17, comfort: -5 }, log: "gets absorbed in a paperback novel." }] },
@@ -88,7 +91,7 @@ const speedButtons = document.querySelectorAll(".speed-button");
 
 function createSim(id, name, x, y, color) {
   if (!isWalkable(x, y)) {
-    throw new Error(`Invalid starting position for ${name}: ${x},${y}`);
+    throw new Error(`Invalid starting position for ${name}: (${x}, ${y}). Valid tiles are within the ${LOT_WIDTH}x${LOT_HEIGHT} lot grid.`);
   }
 
   return {
@@ -272,10 +275,15 @@ function chooseAutonomy(sim) {
   const [need, value] = lowestNeed(sim);
   if (value > AUTONOMY_THRESHOLD) return;
 
-  const best = objects
-    .flatMap((object) => object.interactions.map((interaction) => ({ object, interaction, gain: interaction.effects?.[need] || 0 })))
-    .filter((candidate) => candidate.gain > 0 && canAfford(candidate.interaction))
-    .sort((a, b) => b.gain - a.gain)[0];
+  let best = null;
+
+  objects.forEach((object) => {
+    object.interactions.forEach((interaction) => {
+      const gain = interaction.effects?.[need] || 0;
+      if (gain <= 0 || !canAfford(interaction)) return;
+      if (!best || gain > best.gain) best = { object, interaction, gain };
+    });
+  });
 
   if (best) queueInteraction(sim, best.object.id, best.interaction);
 }

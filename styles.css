@@ -374,7 +374,7 @@ h2 {
   display: block;
 }
 
-.object-fridge::before { --dummy: 0; height: 38px; top: 10px; background: linear-gradient(180deg, #eef2f4, #cfd9de); border-radius: 3px; }
+.object-fridge::before { height: 38px; top: 10px; background: linear-gradient(180deg, #eef2f4, #cfd9de); border-radius: 3px; }
 .object-table::before { height: 18px; top: 24px; background: linear-gradient(180deg, #9b6035, #6f4222); border-radius: 6px; }
 .object-shower::before { height: 38px; top: 10px; background: linear-gradient(180deg, #c9edf7, #90bfd1); border-radius: 8px 8px 3px 3px; }
 .object-toilet::before { width: 36px; height: 28px; top: 20px; background: linear-gradient(180deg, #f6f4ef, #d9d6ce); border-radius: 14px; }
