@@ -1,18 +1,19 @@
 # Mzansi-Neighborhood
 
-A modern reimagining of classic life-simulation gameplay from the era of early household simulators: deeper AI, richer systems, and authentic South African neighborhoods, culture, and music. Build homes, shape lives, and watch a vibrant community come alive.
+Mzansi Neighborhood is an original browser-based classic household life simulator inspired by early isometric life-sim design. It focuses on South African household flavor, needs-driven simulation, room/object interactions, and a chunky retro control interface while using original names, text, layout, and art direction.
 
-## Current prototype
+## Current experience
 
-This repository currently contains a small browser-based prototype built with plain HTML, CSS, and JavaScript. It creates an original classic life-sim style household scene with:
+The app now contains a fuller single-lot simulation instead of a flat prototype:
 
-- A tiled starter home with rooms and interactable objects
-- A household member with visible needs and mood
-- Time progression, pausing, daily funds, and need decay
-- Actions such as eating, showering, sleeping, relaxing, dancing, socializing, and painting
-- A lightweight event log for household activity
+- Isometric starter home with distinct rooms, garden tiles, furniture, selectable Sims, and cutaway/up wall controls
+- Two household members with independent needs, moods, routing, action queues, and optional autonomy
+- Object interactions for cooking, eating, showering, sleeping, relaxing, socializing, painting, cleaning, and skill-like activities
+- Live-mode control bar with pause, speed controls, household funds, clock, weekday, and event feed
+- Buy catalog for placing additional original furniture that unlocks more interactions
+- Need decay, action durations, costs, income, daily stipend, and autonomous recovery when needs get low
 
-The implementation intentionally uses original names, layout, art, and text rather than copying protected assets or branding from any commercial game.
+This project does not copy protected assets, branding, names, audio, UI art, or proprietary data from any commercial game. It recreates the broad feel of a classic isometric household simulator with original implementation and content.
 
 ## Run locally
 

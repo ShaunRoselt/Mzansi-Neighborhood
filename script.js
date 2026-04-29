@@ -1,96 +1,104 @@
-const TICK_MS = 1400;
-const START_HOUR = 7;
+const TICK_MS = 900;
+const TILE_W = 88;
+const TILE_H = 44;
+const ORIGIN_X = 500;
+const ORIGIN_Y = 52;
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const NEED_ORDER = ["hunger", "comfort", "hygiene", "bladder", "energy", "fun", "social", "room"];
 
 const rooms = {
-  kitchen: { label: "Kitchen", color: "#f2c66d" },
-  bathroom: { label: "Bathroom", color: "#9fd2db" },
-  bedroom: { label: "Bedroom", color: "#c7a4d9" },
-  lounge: { label: "Lounge", color: "#e69b75" },
-  yard: { label: "Yard", color: "#9fcf79" }
+  K: { name: "Kitchen", color: "#d6a85d" },
+  B: { name: "Bathroom", color: "#8fc5d4" },
+  D: { name: "Bedroom", color: "#b594cc" },
+  L: { name: "Lounge", color: "#c98258" },
+  Y: { name: "Garden", color: "#88ad62" }
 };
 
-const objects = [
-  { id: "fridge", icon: "🧊", room: "kitchen", x: 2, y: 1, action: "Cook meal", need: "hunger", amount: 34, fundsDelta: -18, log: "Nomsa cooks a quick plate of food." },
-  { id: "table", icon: "🍽️", room: "kitchen", x: 3, y: 2, action: "Eat", need: "hunger", amount: 24, fundsDelta: 0, log: "Nomsa enjoys a calm meal at the table." },
-  { id: "shower", icon: "🚿", room: "bathroom", x: 7, y: 1, action: "Shower", need: "hygiene", amount: 38, fundsDelta: 0, log: "A refreshing shower restores hygiene." },
-  { id: "toilet", icon: "🚽", room: "bathroom", x: 8, y: 2, action: "Use toilet", need: "bladder", amount: 45, fundsDelta: 0, log: "Nomsa takes care of bladder needs." },
-  { id: "bed", icon: "🛏️", room: "bedroom", x: 2, y: 7, action: "Sleep", need: "energy", amount: 48, fundsDelta: 0, log: "Nomsa gets some much-needed rest." },
-  { id: "sofa", icon: "🛋️", room: "lounge", x: 6, y: 5, action: "Relax", need: "comfort", amount: 30, fundsDelta: 0, log: "The sofa brings comfort back up." },
-  { id: "stereo", icon: "📻", room: "lounge", x: 7, y: 6, action: "Dance", need: "fun", amount: 34, fundsDelta: 0, log: "Music fills the house and fun rises." },
-  { id: "phone", icon: "☎️", room: "lounge", x: 5, y: 6, action: "Call friend", need: "social", amount: 32, fundsDelta: 0, log: "A chat with a friend improves social mood." },
-  { id: "easel", icon: "🎨", room: "yard", x: 8, y: 8, action: "Paint", need: "fun", amount: 18, fundsDelta: 42, log: "Nomsa sells a small painting for household funds." }
+const lot = [
+  "YYYYYYYYYYYY",
+  "YKKKKLLLYYYY",
+  "YKKKKLLLYYYY",
+  "YKKKKLLLYYYY",
+  "YKKKKLLLYYYY",
+  "YDDDBBBYYYYY",
+  "YDDDBBBYYYYY",
+  "YDDDBBBYYYYY",
+  "YDDDLLLYYYYY",
+  "YDDDLLLYYYYY"
 ];
 
-const floorPlan = [
-  "WWWWWWWWWW",
-  "WKKKKWBBBW",
-  "WKKKKWBBBW",
-  "WKKKKWBBBW",
-  "WWWWDWWDWW",
-  "WLLLLLLLLW",
-  "WLLLLLLLLW",
-  "WDDDWWLLLW",
-  "WYYYWWLLLW",
-  "WWWWWWWWWW"
+const catalog = [
+  { id: "lamp", label: "Standing Lamp", cost: 85, x: 8, y: 8, room: "L", icon: "lamp", interactions: [{ label: "Admire lamp", duration: 20, effects: { room: 10, fun: 3 }, log: "enjoys the warm lamplight." }] },
+  { id: "bookcase", label: "Bookcase", cost: 210, x: 7, y: 3, room: "L", icon: "books", interactions: [{ label: "Read", duration: 45, effects: { fun: 17, comfort: -5 }, log: "gets absorbed in a paperback novel." }] },
+  { id: "garden-chair", label: "Garden Chair", cost: 130, x: 9, y: 6, room: "Y", icon: "chair", interactions: [{ label: "Sit outside", duration: 35, effects: { comfort: 18, fun: 6, room: 8 }, log: "takes in the neighborhood air." }] }
 ];
 
-const roomCodes = {
-  K: "kitchen",
-  B: "bathroom",
-  D: "bedroom",
-  L: "lounge",
-  Y: "yard"
-};
+let objects = [
+  { id: "fridge", label: "Fridge", x: 1, y: 1, room: "K", icon: "fridge", interactions: [{ label: "Make dinner", duration: 45, cost: 22, effects: { hunger: 38, room: -2 }, log: "makes a hot plate of food." }, { label: "Snack", duration: 20, cost: 8, effects: { hunger: 16 }, log: "grabs a quick snack." }] },
+  { id: "table", label: "Dining Table", x: 3, y: 3, room: "K", icon: "table", interactions: [{ label: "Eat together", duration: 40, effects: { hunger: 20, social: 12, comfort: 4 }, log: "sits down for a proper meal." }] },
+  { id: "shower", label: "Shower", x: 5, y: 5, room: "B", icon: "shower", interactions: [{ label: "Take shower", duration: 35, effects: { hygiene: 42, comfort: 5 }, log: "washes away the day." }] },
+  { id: "toilet", label: "Toilet", x: 6, y: 6, room: "B", icon: "toilet", interactions: [{ label: "Use toilet", duration: 20, effects: { bladder: 55, hygiene: -5 }, log: "takes care of urgent business." }] },
+  { id: "bed", label: "Bed", x: 1, y: 6, room: "D", icon: "bed", interactions: [{ label: "Sleep", duration: 180, effects: { energy: 58, comfort: 18, hunger: -18, bladder: -14 }, log: "sleeps under a patchwork blanket." }, { label: "Nap", duration: 75, effects: { energy: 26, comfort: 10 }, log: "takes a short nap." }] },
+  { id: "mirror", label: "Mirror", x: 3, y: 6, room: "D", icon: "mirror", interactions: [{ label: "Practice speech", duration: 45, effects: { social: 12, fun: 7, hygiene: -2 }, log: "practices a confident introduction." }] },
+  { id: "sofa", label: "Sofa", x: 6, y: 2, room: "L", icon: "sofa", interactions: [{ label: "Watch TV", duration: 55, effects: { fun: 30, comfort: 14, energy: -4 }, log: "laughs at an old sitcom." }, { label: "Sit", duration: 25, effects: { comfort: 20, energy: 4 }, log: "sinks into the sofa cushions." }] },
+  { id: "phone", label: "Telephone", x: 7, y: 1, room: "L", icon: "phone", interactions: [{ label: "Call neighbor", duration: 35, effects: { social: 28, fun: 5 }, log: "catches up with a neighbor." }] },
+  { id: "easel", label: "Easel", x: 9, y: 4, room: "Y", icon: "easel", interactions: [{ label: "Paint", duration: 70, income: 70, effects: { fun: 18, energy: -12, hygiene: -6 }, log: "sells a small painting." }] },
+  { id: "trash", label: "Bin", x: 10, y: 3, room: "Y", icon: "trash", interactions: [{ label: "Clean up", duration: 30, effects: { room: 22, hygiene: -8 }, log: "tidies the lot and improves the room score." }] }
+];
 
 const state = {
   paused: false,
+  speed: 1,
+  autonomy: true,
+  wallsCutaway: true,
   day: 0,
-  minutes: START_HOUR * 60,
-  funds: 850,
-  activeObjectId: "table",
-  simPosition: { x: 3, y: 2 },
-  needs: {
-    hunger: 78,
-    energy: 68,
-    hygiene: 82,
-    bladder: 73,
-    fun: 66,
-    social: 58,
-    comfort: 72
-  }
+  minutes: 7 * 60,
+  funds: 1200,
+  selectedSimId: "nomsa",
+  sims: [
+    createSim("nomsa", "Nomsa Dlamini", 2, 3, "#2c8a65"),
+    createSim("thabo", "Thabo Mokoena", 6, 3, "#8c4f9f")
+  ],
+  log: []
 };
 
-const needMeta = {
-  hunger: "Food",
-  energy: "Rest",
-  hygiene: "Cleanliness",
-  bladder: "Bladder",
-  fun: "Fun",
-  social: "Social",
-  comfort: "Comfort"
-};
-
-const decayRates = {
-  hunger: 2.2,
-  energy: 1.7,
-  hygiene: 1.6,
-  bladder: 2.4,
-  fun: 1.4,
-  social: 1.2,
-  comfort: 1.1
-};
-
-const houseGrid = document.querySelector("#houseGrid");
-const needsList = document.querySelector("#needsList");
+const isoStage = document.querySelector("#isoStage");
+const householdList = document.querySelector("#householdList");
+const selectedSimName = document.querySelector("#selectedSimName");
+const selectedSimMood = document.querySelector("#selectedSimMood");
+const needsPanel = document.querySelector("#needsPanel");
 const needTemplate = document.querySelector("#needTemplate");
-const actionButtons = document.querySelector("#actionButtons");
-const eventLog = document.querySelector("#eventLog");
+const queueList = document.querySelector("#queueList");
+const catalogList = document.querySelector("#catalogList");
 const dayLabel = document.querySelector("#dayLabel");
 const timeLabel = document.querySelector("#timeLabel");
 const fundsValue = document.querySelector("#fundsValue");
 const pauseButton = document.querySelector("#pauseButton");
-const simMood = document.querySelector("#simMood");
+const wallsButton = document.querySelector("#wallsButton");
+const autonomyButton = document.querySelector("#autonomyButton");
+const eventLog = document.querySelector("#eventLog");
+
+function createSim(id, name, x, y, color) {
+  return {
+    id,
+    name,
+    x,
+    y,
+    color,
+    queue: [],
+    active: null,
+    needs: {
+      hunger: 76,
+      comfort: 68,
+      hygiene: 74,
+      bladder: 70,
+      energy: 72,
+      fun: 60,
+      social: 62,
+      room: 58
+    }
+  };
+}
 
 function clamp(value) {
   return Math.max(0, Math.min(100, Math.round(value)));
@@ -102,104 +110,313 @@ function formatTime(minutes) {
   return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
 }
 
-function getNeedColor(value) {
-  if (value < 28) return "var(--danger)";
-  if (value < 55) return "#d49a2f";
-  return "var(--accent)";
+function isoPosition(x, y, z = 0) {
+  return {
+    left: ORIGIN_X + (x - y) * (TILE_W / 2),
+    top: ORIGIN_Y + (x + y) * (TILE_H / 2) - z
+  };
 }
 
-function getMood() {
-  const values = Object.values(state.needs);
-  const average = values.reduce((sum, value) => sum + value, 0) / values.length;
-  const lowestNeed = Object.entries(state.needs).sort((a, b) => a[1] - b[1])[0];
+function getSelectedSim() {
+  return state.sims.find((sim) => sim.id === state.selectedSimId) || state.sims[0];
+}
 
-  if (lowestNeed[1] < 20) return `Desperate for ${needMeta[lowestNeed[0]].toLowerCase()}`;
-  if (average > 75) return "Thriving at home";
-  if (average > 55) return "Feeling balanced";
-  if (average > 35) return "Needs some attention";
-  return "Having a rough day";
+function getObject(id) {
+  return objects.find((object) => object.id === id);
+}
+
+function getInteraction(objectId, label) {
+  const object = getObject(objectId);
+  return object?.interactions.find((interaction) => interaction.label === label);
 }
 
 function addLog(message) {
-  const item = document.createElement("li");
-  item.textContent = `${formatTime(state.minutes)} — ${message}`;
-  eventLog.prepend(item);
-
-  while (eventLog.children.length > 8) {
-    eventLog.lastElementChild.remove();
-  }
+  state.log.unshift(`${formatTime(state.minutes)} — ${message}`);
+  state.log = state.log.slice(0, 7);
 }
 
-function renderHouse() {
-  houseGrid.innerHTML = "";
+function roomAt(x, y) {
+  return rooms[lot[y]?.[x]] || rooms.Y;
+}
 
-  floorPlan.forEach((row, y) => {
+function lowestNeed(sim) {
+  return Object.entries(sim.needs).sort((a, b) => a[1] - b[1])[0];
+}
+
+function moodFor(sim) {
+  const [need, value] = lowestNeed(sim);
+  if (value < 18) return `Desperate for ${need}`;
+  if (value < 35) return `Worried about ${need}`;
+  const average = Object.values(sim.needs).reduce((sum, value) => sum + value, 0) / NEED_ORDER.length;
+  if (average > 78) return "Living their best day";
+  if (average > 58) return "Comfortably settled";
+  return "Needs direction";
+}
+
+function needColor(value) {
+  if (value < 25) return "#cf3f2f";
+  if (value < 52) return "#d08a23";
+  return "#2e9f62";
+}
+
+function canAfford(interaction) {
+  return !interaction.cost || state.funds >= interaction.cost;
+}
+
+function queueInteraction(sim, objectId, interaction) {
+  if (!interaction || !canAfford(interaction)) return;
+  sim.queue.push({ objectId, label: interaction.label });
+  addLog(`${sim.name} queues “${interaction.label}”.`);
+  render();
+}
+
+function buyItem(itemId) {
+  const item = catalog.find((entry) => entry.id === itemId);
+  if (!item || objects.some((object) => object.id === item.id) || state.funds < item.cost) return;
+
+  state.funds -= item.cost;
+  objects.push({ ...item, interactions: item.interactions.map((interaction) => ({ ...interaction })) });
+  addLog(`Bought ${item.label} for §${item.cost}.`);
+  render();
+}
+
+function startNextAction(sim) {
+  if (sim.active || sim.queue.length === 0) return;
+  const queued = sim.queue.shift();
+  const object = getObject(queued.objectId);
+  const interaction = getInteraction(queued.objectId, queued.label);
+  if (!object || !interaction || !canAfford(interaction)) return;
+
+  sim.active = {
+    objectId: object.id,
+    label: interaction.label,
+    duration: interaction.duration,
+    remaining: interaction.duration,
+    phase: "routing"
+  };
+}
+
+function routeSim(sim, object) {
+  if (sim.x === object.x && sim.y === object.y) {
+    sim.active.phase = "using";
+    return;
+  }
+
+  const dx = Math.sign(object.x - sim.x);
+  const dy = Math.sign(object.y - sim.y);
+  if (Math.abs(object.x - sim.x) >= Math.abs(object.y - sim.y)) sim.x += dx;
+  else sim.y += dy;
+}
+
+function finishAction(sim, interaction) {
+  if (interaction.cost) state.funds -= interaction.cost;
+  if (interaction.income) state.funds += interaction.income;
+
+  Object.entries(interaction.effects || {}).forEach(([need, amount]) => {
+    sim.needs[need] = clamp(sim.needs[need] + amount);
+  });
+
+  const moneyNote = interaction.income ? ` (+§${interaction.income})` : interaction.cost ? ` (-§${interaction.cost})` : "";
+  addLog(`${sim.name} ${interaction.log}${moneyNote}`);
+  sim.active = null;
+}
+
+function decayNeeds(sim, amount) {
+  const decay = {
+    hunger: 0.055,
+    comfort: 0.035,
+    hygiene: 0.045,
+    bladder: 0.06,
+    energy: 0.04,
+    fun: 0.038,
+    social: 0.032,
+    room: 0.026
+  };
+
+  Object.entries(decay).forEach(([need, rate]) => {
+    sim.needs[need] = clamp(sim.needs[need] - rate * amount);
+  });
+}
+
+function chooseAutonomy(sim) {
+  if (!state.autonomy || sim.active || sim.queue.length > 0) return;
+  const [need, value] = lowestNeed(sim);
+  if (value > 34) return;
+
+  const best = objects
+    .flatMap((object) => object.interactions.map((interaction) => ({ object, interaction, gain: interaction.effects?.[need] || 0 })))
+    .filter((candidate) => candidate.gain > 0 && canAfford(candidate.interaction))
+    .sort((a, b) => b.gain - a.gain)[0];
+
+  if (best) queueInteraction(sim, best.object.id, best.interaction);
+}
+
+function advanceSimulation(minutes) {
+  state.minutes += minutes;
+  if (state.minutes >= 24 * 60) {
+    state.minutes %= 24 * 60;
+    state.day += 1;
+    state.funds += 110;
+    addLog("A new morning starts with household stipend income (+§110).");
+  }
+
+  state.sims.forEach((sim) => {
+    decayNeeds(sim, minutes);
+    chooseAutonomy(sim);
+    startNextAction(sim);
+
+    if (!sim.active) return;
+    const object = getObject(sim.active.objectId);
+    const interaction = getInteraction(sim.active.objectId, sim.active.label);
+    if (!object || !interaction) {
+      sim.active = null;
+      return;
+    }
+
+    if (sim.active.phase === "routing") routeSim(sim, object);
+    else {
+      sim.active.remaining -= minutes;
+      if (sim.active.remaining <= 0) finishAction(sim, interaction);
+    }
+  });
+}
+
+function renderStage() {
+  isoStage.innerHTML = "";
+
+  lot.forEach((row, y) => {
     [...row].forEach((code, x) => {
+      const room = rooms[code];
+      const position = isoPosition(x, y);
       const tile = document.createElement("button");
       tile.type = "button";
-      tile.className = "tile";
-      tile.setAttribute("aria-label", "Empty floor tile");
-
-      if (code === "W") {
-        tile.classList.add("wall");
-        tile.disabled = true;
-        tile.setAttribute("aria-label", "Wall");
-      } else {
-        const roomName = roomCodes[code];
-        tile.classList.add(`room-${roomName}`);
-        tile.style.setProperty("--room-color", rooms[roomName].color);
-        tile.setAttribute("aria-label", `${rooms[roomName].label} floor tile`);
-      }
-
-      const object = objects.find((item) => item.x === x && item.y === y);
-      if (object) {
-        tile.classList.add("clickable");
-        tile.dataset.objectId = object.id;
-        tile.innerHTML = `<span aria-hidden="true">${object.icon}</span>`;
-        tile.setAttribute("aria-label", `${object.action} at ${rooms[object.room].label}`);
-        tile.disabled = false;
-      }
-
-      if (state.simPosition.x === x && state.simPosition.y === y) {
-        const sim = document.createElement("i");
-        sim.className = "sim-token";
-        sim.setAttribute("aria-label", "Nomsa is here");
-        tile.append(sim);
-      }
-
-      houseGrid.append(tile);
+      tile.className = `iso-tile room-${code}`;
+      tile.style.left = `${position.left}px`;
+      tile.style.top = `${position.top}px`;
+      tile.style.setProperty("--room-color", room.color);
+      tile.setAttribute("aria-label", `${room.name} floor tile`);
+      isoStage.append(tile);
     });
+  });
+
+  if (!state.wallsCutaway) {
+    lot.forEach((row, y) => {
+      [...row].forEach((code, x) => {
+        if (code === "Y") return;
+        const northEdge = y === 0 || lot[y - 1][x] !== code;
+        const westEdge = x === 0 || lot[y][x - 1] !== code;
+        if (northEdge) renderWall(x, y, "north");
+        if (westEdge) renderWall(x, y, "west");
+      });
+    });
+  }
+
+  objects.forEach(renderObject);
+  state.sims.forEach(renderSim);
+}
+
+function renderWall(x, y, direction) {
+  const position = isoPosition(x, y, 24);
+  const wall = document.createElement("div");
+  wall.className = `wall wall-${direction}`;
+  wall.style.left = `${position.left}px`;
+  wall.style.top = `${position.top}px`;
+  isoStage.append(wall);
+}
+
+function renderObject(object) {
+  const position = isoPosition(object.x, object.y, 16);
+  const node = document.createElement("article");
+  node.className = `object-card object-${object.icon}`;
+  node.style.left = `${position.left}px`;
+  node.style.top = `${position.top}px`;
+  node.innerHTML = `<strong>${object.label}</strong><div class="interaction-menu"></div>`;
+
+  const menu = node.querySelector(".interaction-menu");
+  object.interactions.forEach((interaction) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.objectId = object.id;
+    button.dataset.interaction = interaction.label;
+    button.disabled = !canAfford(interaction);
+    button.textContent = interaction.cost ? `${interaction.label} §${interaction.cost}` : interaction.label;
+    menu.append(button);
+  });
+
+  isoStage.append(node);
+}
+
+function renderSim(sim) {
+  const position = isoPosition(sim.x, sim.y, 46);
+  const node = document.createElement("button");
+  node.type = "button";
+  node.className = `sim ${sim.id === state.selectedSimId ? "selected" : ""}`;
+  node.style.left = `${position.left}px`;
+  node.style.top = `${position.top}px`;
+  node.style.setProperty("--sim-color", sim.color);
+  node.dataset.simId = sim.id;
+  node.innerHTML = `<span>${sim.name.split(" ")[0]}</span>`;
+  node.setAttribute("aria-label", `Select ${sim.name}, currently in ${roomAt(sim.x, sim.y).name}`);
+  isoStage.append(node);
+}
+
+function renderHousehold() {
+  householdList.innerHTML = "";
+  state.sims.forEach((sim) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = sim.id === state.selectedSimId ? "active" : "";
+    button.dataset.simId = sim.id;
+    button.innerHTML = `<span class="mini-head" style="--sim-color:${sim.color}"></span><strong>${sim.name}</strong><small>${moodFor(sim)}</small>`;
+    householdList.append(button);
   });
 }
 
 function renderNeeds() {
-  needsList.innerHTML = "";
+  const sim = getSelectedSim();
+  selectedSimName.textContent = sim.name;
+  selectedSimMood.textContent = moodFor(sim);
+  needsPanel.innerHTML = "";
 
-  Object.entries(state.needs).forEach(([key, value]) => {
+  NEED_ORDER.forEach((need) => {
     const row = needTemplate.content.firstElementChild.cloneNode(true);
-    row.querySelector("strong").textContent = needMeta[key];
-    row.querySelector("span").textContent = `${value}%`;
-    row.querySelector("i").style.setProperty("--value", `${value}%`);
-    row.querySelector("i").style.setProperty("--meter-color", getNeedColor(value));
-    needsList.append(row);
+    const value = sim.needs[need];
+    row.querySelector("span").textContent = need[0].toUpperCase() + need.slice(1);
+    row.querySelector("strong").textContent = value;
+    row.querySelector("i").style.width = `${value}%`;
+    row.querySelector("i").style.backgroundColor = needColor(value);
+    needsPanel.append(row);
   });
 }
 
+function renderQueue() {
+  const sim = getSelectedSim();
+  queueList.innerHTML = "";
+  const active = sim.active ? [`${sim.active.phase === "routing" ? "Go to" : "Do"} ${sim.active.label}`] : [];
+  const queued = sim.queue.map((item) => item.label);
+  [...active, ...queued].forEach((label) => {
+    const li = document.createElement("li");
+    li.textContent = label;
+    queueList.append(li);
+  });
 
-function canPerformAction(object) {
-  return object.fundsDelta >= 0 || state.funds >= Math.abs(object.fundsDelta);
+  if (queueList.children.length === 0) {
+    const li = document.createElement("li");
+    li.textContent = "No queued actions";
+    queueList.append(li);
+  }
 }
 
-function renderActions() {
-  actionButtons.innerHTML = "";
-
-  objects.forEach((object) => {
+function renderCatalog() {
+  catalogList.innerHTML = "";
+  catalog.forEach((item) => {
+    const owned = objects.some((object) => object.id === item.id);
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = object.action;
-    button.dataset.objectId = object.id;
-    button.disabled = !canPerformAction(object);
-    actionButtons.append(button);
+    button.dataset.itemId = item.id;
+    button.disabled = owned || state.funds < item.cost;
+    button.innerHTML = `<strong>${item.label}</strong><span>${owned ? "Owned" : `§${item.cost}`}</span>`;
+    catalogList.append(button);
   });
 }
 
@@ -207,70 +424,51 @@ function renderHud() {
   dayLabel.textContent = DAYS[state.day % DAYS.length];
   timeLabel.textContent = formatTime(state.minutes);
   fundsValue.textContent = state.funds;
-  pauseButton.textContent = state.paused ? "Resume" : "Pause";
-  simMood.textContent = getMood();
-}
-
-function render() {
-  renderHouse();
-  renderNeeds();
-  renderActions();
-  renderHud();
-}
-
-function advanceTime(amount) {
-  state.minutes += amount;
-
-  if (state.minutes >= 24 * 60) {
-    state.minutes %= 24 * 60;
-    state.day += 1;
-    state.funds += 65;
-    addLog("A new day starts with a modest household stipend.");
-  }
-}
-
-function decayNeeds() {
-  Object.entries(decayRates).forEach(([need, rate]) => {
-    state.needs[need] = clamp(state.needs[need] - rate);
+  pauseButton.classList.toggle("active", state.paused);
+  wallsButton.textContent = `Walls: ${state.wallsCutaway ? "Cutaway" : "Up"}`;
+  autonomyButton.textContent = `Autonomy: ${state.autonomy ? "On" : "Off"}`;
+  eventLog.innerHTML = "";
+  state.log.forEach((line) => {
+    const li = document.createElement("li");
+    li.textContent = line;
+    eventLog.append(li);
   });
 }
 
-function performAction(objectId) {
-  const object = objects.find((item) => item.id === objectId);
-  if (!object || !canPerformAction(object)) return;
-
-  state.activeObjectId = object.id;
-  state.simPosition = { x: object.x, y: object.y };
-  state.needs[object.need] = clamp(state.needs[object.need] + object.amount);
-  state.funds += object.fundsDelta;
-  advanceTime(object.action === "Sleep" ? 180 : 35);
-  addLog(object.log);
-  render();
+function render() {
+  renderStage();
+  renderHousehold();
+  renderNeeds();
+  renderQueue();
+  renderCatalog();
+  renderHud();
 }
 
-function tick() {
-  if (state.paused) return;
+isoStage.addEventListener("click", (event) => {
+  const simButton = event.target.closest("[data-sim-id]");
+  if (simButton) {
+    state.selectedSimId = simButton.dataset.simId;
+    render();
+    return;
+  }
 
-  decayNeeds();
-  advanceTime(20);
+  const action = event.target.closest("[data-object-id][data-interaction]");
+  if (!action) return;
+  const object = getObject(action.dataset.objectId);
+  const interaction = object?.interactions.find((item) => item.label === action.dataset.interaction);
+  queueInteraction(getSelectedSim(), action.dataset.objectId, interaction);
+});
+
+householdList.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-sim-id]");
+  if (!button) return;
+  state.selectedSimId = button.dataset.simId;
   render();
-}
-
-houseGrid.addEventListener("click", (event) => {
-  const tile = event.target.closest("[data-object-id]");
-  if (tile) performAction(tile.dataset.objectId);
 });
 
-houseGrid.addEventListener("keydown", (event) => {
-  if (event.key !== "Enter" && event.key !== " ") return;
-  event.preventDefault();
-  const tile = event.target.closest("[data-object-id]");
-  if (tile) performAction(tile.dataset.objectId);
-});
-
-actionButtons.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-object-id]");
-  if (button) performAction(button.dataset.objectId);
+catalogList.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-item-id]");
+  if (button) buyItem(button.dataset.itemId);
 });
 
 pauseButton.addEventListener("click", () => {
@@ -278,6 +476,29 @@ pauseButton.addEventListener("click", () => {
   renderHud();
 });
 
-addLog("Nomsa moves into a small starter home.");
+wallsButton.addEventListener("click", () => {
+  state.wallsCutaway = !state.wallsCutaway;
+  render();
+});
+
+autonomyButton.addEventListener("click", () => {
+  state.autonomy = !state.autonomy;
+  renderHud();
+});
+
+document.querySelectorAll(".speed-button").forEach((button) => {
+  button.addEventListener("click", () => {
+    state.speed = Number(button.dataset.speed);
+    document.querySelectorAll(".speed-button").forEach((speedButton) => speedButton.classList.remove("active"));
+    button.classList.add("active");
+  });
+});
+
+addLog("Nomsa and Thabo arrive at their starter home.");
 render();
-setInterval(tick, TICK_MS);
+
+setInterval(() => {
+  if (state.paused) return;
+  advanceSimulation(5 * state.speed);
+  render();
+}, TICK_MS);
