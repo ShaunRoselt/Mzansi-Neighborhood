@@ -82,6 +82,10 @@ const eventLog = document.querySelector("#eventLog");
 const speedButtons = document.querySelectorAll(".speed-button");
 
 function createSim(id, name, x, y, color) {
+  if (!isWalkable(x, y)) {
+    throw new Error(`Invalid starting position for ${name}: ${x},${y}`);
+  }
+
   return {
     id,
     name,
@@ -142,6 +146,10 @@ function roomAt(x, y) {
   return rooms[lot[y]?.[x]] || rooms.Y;
 }
 
+function isWalkable(x, y) {
+  return Boolean(lot[y]?.[x]);
+}
+
 function lowestNeed(sim) {
   return Object.entries(sim.needs).sort((a, b) => a[1] - b[1])[0];
 }
@@ -184,7 +192,7 @@ function buyItem(itemId) {
   if (!item || objects.some((object) => object.id === item.id) || state.funds < item.cost) return;
 
   state.funds -= item.cost;
-  objects.push({ ...item, interactions: item.interactions.map((interaction) => ({ ...interaction })) });
+  objects.push(structuredClone(item));
   addLog(`Bought ${item.label} for §${item.cost}.`);
   render();
 }
@@ -213,8 +221,16 @@ function moveTowardsObject(sim, object) {
 
   const dx = Math.sign(object.x - sim.x);
   const dy = Math.sign(object.y - sim.y);
-  if (Math.abs(object.x - sim.x) >= Math.abs(object.y - sim.y)) sim.x += dx;
-  else sim.y += dy;
+  const horizontalStep = { x: sim.x + dx, y: sim.y };
+  const verticalStep = { x: sim.x, y: sim.y + dy };
+  const preferHorizontal = Math.abs(object.x - sim.x) >= Math.abs(object.y - sim.y);
+  const options = preferHorizontal ? [horizontalStep, verticalStep] : [verticalStep, horizontalStep];
+  const next = options.find((step) => isWalkable(step.x, step.y));
+
+  if (next) {
+    sim.x = next.x;
+    sim.y = next.y;
+  }
 }
 
 function finishAction(sim, interaction) {
