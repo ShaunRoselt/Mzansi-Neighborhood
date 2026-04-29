@@ -3,6 +3,7 @@ const TILE_W = 88;
 const TILE_H = 44;
 const ORIGIN_X = 500;
 const ORIGIN_Y = 52;
+const DAILY_STIPEND = 110;
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const NEED_ORDER = ["hunger", "comfort", "hygiene", "bladder", "energy", "fun", "social", "room"];
 
@@ -196,7 +197,7 @@ function startNextAction(sim) {
   };
 }
 
-function routeSim(sim, object) {
+function moveTowardsObject(sim, object) {
   if (sim.x === object.x && sim.y === object.y) {
     sim.active.phase = "using";
     return;
@@ -256,8 +257,8 @@ function advanceSimulation(minutes) {
   if (state.minutes >= 24 * 60) {
     state.minutes %= 24 * 60;
     state.day += 1;
-    state.funds += 110;
-    addLog("A new morning starts with household stipend income (+§110).");
+    state.funds += DAILY_STIPEND;
+    addLog(`A new morning starts with household stipend income (+§${DAILY_STIPEND}).`);
   }
 
   state.sims.forEach((sim) => {
@@ -273,7 +274,7 @@ function advanceSimulation(minutes) {
       return;
     }
 
-    if (sim.active.phase === "routing") routeSim(sim, object);
+    if (sim.active.phase === "routing") moveTowardsObject(sim, object);
     else {
       sim.active.remaining -= minutes;
       if (sim.active.remaining <= 0) finishAction(sim, interaction);
@@ -494,7 +495,7 @@ document.querySelectorAll(".speed-button").forEach((button) => {
   });
 });
 
-addLog("Nomsa and Thabo arrive at their starter home.");
+addLog(`${state.sims.map((sim) => sim.name.split(" ")[0]).join(" and ")} arrive at their starter home.`);
 render();
 
 setInterval(() => {
