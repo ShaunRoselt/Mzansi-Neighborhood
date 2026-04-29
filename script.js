@@ -4,6 +4,7 @@ const TILE_H = 44;
 const ORIGIN_X = 500;
 const ORIGIN_Y = 52;
 const DAILY_STIPEND = 110;
+const MAX_LOG_ENTRIES = 7;
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const NEED_ORDER = ["hunger", "comfort", "hygiene", "bladder", "energy", "fun", "social", "room"];
 
@@ -78,6 +79,7 @@ const pauseButton = document.querySelector("#pauseButton");
 const wallsButton = document.querySelector("#wallsButton");
 const autonomyButton = document.querySelector("#autonomyButton");
 const eventLog = document.querySelector("#eventLog");
+const speedButtons = document.querySelectorAll(".speed-button");
 
 function createSim(id, name, x, y, color) {
   return {
@@ -133,7 +135,7 @@ function getInteraction(objectId, label) {
 
 function addLog(message) {
   state.log.unshift(`${formatTime(state.minutes)} — ${message}`);
-  state.log = state.log.slice(0, 7);
+  state.log = state.log.slice(0, MAX_LOG_ENTRIES);
 }
 
 function roomAt(x, y) {
@@ -162,6 +164,12 @@ function needColor(value) {
 
 function canAfford(interaction) {
   return !interaction.cost || state.funds >= interaction.cost;
+}
+
+function formatMoneyNote(interaction) {
+  if (interaction.income) return ` (+§${interaction.income})`;
+  if (interaction.cost) return ` (-§${interaction.cost})`;
+  return "";
 }
 
 function queueInteraction(sim, objectId, interaction) {
@@ -217,8 +225,7 @@ function finishAction(sim, interaction) {
     sim.needs[need] = clamp(sim.needs[need] + amount);
   });
 
-  const moneyNote = interaction.income ? ` (+§${interaction.income})` : interaction.cost ? ` (-§${interaction.cost})` : "";
-  addLog(`${sim.name} ${interaction.log}${moneyNote}`);
+  addLog(`${sim.name} ${interaction.log}${formatMoneyNote(interaction)}`);
   sim.active = null;
 }
 
@@ -487,10 +494,10 @@ autonomyButton.addEventListener("click", () => {
   renderHud();
 });
 
-document.querySelectorAll(".speed-button").forEach((button) => {
+speedButtons.forEach((button) => {
   button.addEventListener("click", () => {
     state.speed = Number(button.dataset.speed);
-    document.querySelectorAll(".speed-button").forEach((speedButton) => speedButton.classList.remove("active"));
+    speedButtons.forEach((speedButton) => speedButton.classList.remove("active"));
     button.classList.add("active");
   });
 });
