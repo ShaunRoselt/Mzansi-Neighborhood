@@ -11,15 +11,15 @@ const rooms = {
 };
 
 const objects = [
-  { id: "fridge", icon: "🧊", room: "kitchen", x: 2, y: 1, action: "Cook meal", need: "hunger", amount: 34, cost: 18, log: "Nomsa cooks a quick plate of food." },
-  { id: "table", icon: "🍽️", room: "kitchen", x: 3, y: 2, action: "Eat", need: "hunger", amount: 24, cost: 0, log: "Nomsa enjoys a calm meal at the table." },
-  { id: "shower", icon: "🚿", room: "bathroom", x: 7, y: 1, action: "Shower", need: "hygiene", amount: 38, cost: 0, log: "A refreshing shower restores hygiene." },
-  { id: "toilet", icon: "🚽", room: "bathroom", x: 8, y: 2, action: "Use toilet", need: "bladder", amount: 45, cost: 0, log: "Nomsa takes care of bladder needs." },
-  { id: "bed", icon: "🛏️", room: "bedroom", x: 2, y: 7, action: "Sleep", need: "energy", amount: 48, cost: 0, log: "Nomsa gets some much-needed rest." },
-  { id: "sofa", icon: "🛋️", room: "lounge", x: 6, y: 5, action: "Relax", need: "comfort", amount: 30, cost: 0, log: "The sofa brings comfort back up." },
-  { id: "stereo", icon: "📻", room: "lounge", x: 7, y: 6, action: "Dance", need: "fun", amount: 34, cost: 0, log: "Music fills the house and fun rises." },
-  { id: "phone", icon: "☎️", room: "lounge", x: 5, y: 6, action: "Call friend", need: "social", amount: 32, cost: 0, log: "A chat with a friend improves social mood." },
-  { id: "easel", icon: "🎨", room: "yard", x: 8, y: 8, action: "Paint", need: "fun", amount: 18, cost: -42, log: "Nomsa sells a small painting for household funds." }
+  { id: "fridge", icon: "🧊", room: "kitchen", x: 2, y: 1, action: "Cook meal", need: "hunger", amount: 34, fundsDelta: -18, log: "Nomsa cooks a quick plate of food." },
+  { id: "table", icon: "🍽️", room: "kitchen", x: 3, y: 2, action: "Eat", need: "hunger", amount: 24, fundsDelta: 0, log: "Nomsa enjoys a calm meal at the table." },
+  { id: "shower", icon: "🚿", room: "bathroom", x: 7, y: 1, action: "Shower", need: "hygiene", amount: 38, fundsDelta: 0, log: "A refreshing shower restores hygiene." },
+  { id: "toilet", icon: "🚽", room: "bathroom", x: 8, y: 2, action: "Use toilet", need: "bladder", amount: 45, fundsDelta: 0, log: "Nomsa takes care of bladder needs." },
+  { id: "bed", icon: "🛏️", room: "bedroom", x: 2, y: 7, action: "Sleep", need: "energy", amount: 48, fundsDelta: 0, log: "Nomsa gets some much-needed rest." },
+  { id: "sofa", icon: "🛋️", room: "lounge", x: 6, y: 5, action: "Relax", need: "comfort", amount: 30, fundsDelta: 0, log: "The sofa brings comfort back up." },
+  { id: "stereo", icon: "📻", room: "lounge", x: 7, y: 6, action: "Dance", need: "fun", amount: 34, fundsDelta: 0, log: "Music fills the house and fun rises." },
+  { id: "phone", icon: "☎️", room: "lounge", x: 5, y: 6, action: "Call friend", need: "social", amount: 32, fundsDelta: 0, log: "A chat with a friend improves social mood." },
+  { id: "easel", icon: "🎨", room: "yard", x: 8, y: 8, action: "Paint", need: "fun", amount: 18, fundsDelta: 42, log: "Nomsa sells a small painting for household funds." }
 ];
 
 const floorPlan = [
@@ -193,7 +193,7 @@ function renderActions() {
     button.type = "button";
     button.textContent = object.action;
     button.dataset.objectId = object.id;
-    button.disabled = object.cost > 0 && state.funds < object.cost;
+    button.disabled = object.fundsDelta < 0 && state.funds < Math.abs(object.fundsDelta);
     actionButtons.append(button);
   });
 }
@@ -232,12 +232,12 @@ function decayNeeds() {
 
 function performAction(objectId) {
   const object = objects.find((item) => item.id === objectId);
-  if (!object || (object.cost > 0 && state.funds < object.cost)) return;
+  if (!object || (object.fundsDelta < 0 && state.funds < Math.abs(object.fundsDelta))) return;
 
   state.activeObjectId = object.id;
   state.simPosition = { x: object.x, y: object.y };
   state.needs[object.need] = clamp(state.needs[object.need] + object.amount);
-  state.funds -= object.cost;
+  state.funds += object.fundsDelta;
   advanceTime(object.action === "Sleep" ? 180 : 35);
   addLog(object.log);
   render();
